@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Crush Connect — YMCA Faridabad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<style>
+  :root{
+    --plum:#1B1035; --plum2:#2A1B4D; --coral:#FF5D73; --gold:#FFC857; --cream:#FBF7F5; --muted:#9089A8;
+  }
+  *{box-sizing:border-box;}
+  html,body,#root{height:100%;margin:0;}
+  body{
+    background:var(--plum); color:var(--cream); font-family:'Sora',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,.display{font-family:'Fraunces',serif;}
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-thumb{background:var(--muted);border-radius:999px;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;border:none;}
+  input,textarea{font-family:inherit;}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+  .app{display:flex;min-height:100vh;}
+  .sidebar{
+    width:240px;flex-shrink:0;display:flex;flex-direction:column;justify-content:space-between;
+    background:var(--plum2);border-right:1px solid rgba(255,255,255,.08);padding:32px 24px;
+  }
+  @media (max-width:760px){ .sidebar{display:none;} }
+  .sidebar h1{font-size:24px;margin:0 0 40px;}
+  .navlink{
+    display:block;padding:10px 16px;border-radius:999px;font-size:14px;color:var(--muted);
+    margin-bottom:4px;transition:.15s;
+  }
+  .navlink:hover{background:rgba(255,255,255,.05);color:var(--cream);}
+  .navlink.active{background:var(--coral);color:var(--plum);font-weight:600;}
+  .corner-label{font-size:12px;color:var(--muted);line-height:1.5;}
+
+  .main{flex:1;display:flex;flex-direction:column;position:relative;}
+  .bottomnav{
+    display:none;position:fixed;bottom:0;left:0;right:0;background:var(--plum2);
+    border-top:1px solid rgba(255,255,255,.08);padding:8px;gap:4px;
+  }
+  @media (max-width:760px){ .bottomnav{display:flex;} .with-bottomnav{padding-bottom:70px;} }
+  .bottomnav a{flex:1;text-align:center;font-size:11px;padding:10px 4px;border-radius:999px;color:var(--muted);}
+  .bottomnav a.active{background:var(--coral);color:var(--plum);font-weight:600;}
+
+  .center{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px;}
+  .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.25;pointer-events:none;}
+  .btn-primary{background:var(--coral);color:var(--plum);font-weight:600;padding:13px 32px;border-radius:999px;font-size:15px;}
+  .btn-primary:hover{filter:brightness(1.1);}
+  .btn-outline{border:1px solid rgba(255,255,255,.2);color:var(--cream);padding:13px 32px;border-radius:999px;font-size:15px;background:transparent;}
+  .btn-outline:hover{background:rgba(255,255,255,.05);}
+
+  .field{width:100%;background:var(--plum2);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:13px 16px;color:var(--cream);margin-top:6px;}
+  .field::placeholder{color:rgba(144,137,168,.6);}
+  .field:focus{border-color:var(--coral);outline:none;}
+  .label{font-size:13px;color:var(--muted);}
+  .form-card{width:100%;max-width:360px;}
+
+  .swipe-area{position:relative;width:100%;max-width:360px;height:500px;margin:0 auto;}
+  .swipe-card{
+    position:absolute;inset:0;border-radius:28px;overflow:hidden;background-size:cover;background-position:center;
+    box-shadow:0 20px 50px rgba(0,0,0,.4);cursor:grab;user-select:none;
+    transition:transform .3s ease, opacity .3s ease;
+  }
+  .swipe-card.dragging{transition:none;}
+  .card-shade{position:absolute;inset:0;background:linear-gradient(to top, rgba(27,16,53,.95), rgba(27,16,53,.1) 60%, transparent);}
+  .card-info{position:absolute;bottom:0;padding:22px;}
+  .tag{font-size:11px;background:rgba(255,255,255,.12);border-radius:999px;padding:4px 12px;margin:3px 4px 0 0;display:inline-block;}
+  .stamp{position:absolute;top:28px;border:2px solid;border-radius:8px;padding:4px 12px;font-size:18px;font-family:'Fraunces',serif;}
+  .stamp.like{left:28px;border-color:var(--gold);color:var(--gold);transform:rotate(-12deg);}
+  .stamp.nope{right:28px;border-color:var(--muted);color:var(--muted);transform:rotate(12deg);}
+  .empty-deck{position:absolute;inset:0;border-radius:28px;border:1px solid rgba(255,255,255,.1);background:var(--plum2);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;}
+
+  .swipe-actions{display:flex;gap:24px;justify-content:center;margin-top:28px;}
+  .round-btn{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;}
+  .round-btn.pass{border:1px solid rgba(255,255,255,.15);background:transparent;color:var(--muted);}
+  .round-btn.like{background:var(--coral);color:var(--plum);}
+
+  .match-overlay{position:fixed;inset:0;background:rgba(27,16,53,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;text-align:center;padding:24px;}
+
+  .page{padding:32px 24px;flex:1;}
+  .grid-matches{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:16px;max-width:620px;}
+  .match-tile{border-radius:16px;overflow:hidden;background:var(--plum2);border:1px solid rgba(255,255,255,.08);}
+  .match-tile img{width:100%;height:120px;object-fit:cover;display:block;}
+  .match-tile p{margin:0;padding:8px 12px;font-size:14px;}
+
+  .msg-layout{display:flex;flex:1;}
+  .msg-list{width:220px;border-right:1px solid rgba(255,255,255,.08);padding:20px 12px;overflow-y:auto;}
+  @media (max-width:640px){ .msg-list{display:none;} }
+  .msg-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;cursor:pointer;}
+  .msg-item.active{background:var(--plum2);}
+  .msg-item img{width:36px;height:36px;border-radius:50%;object-fit:cover;}
+  .msg-thread{flex:1;display:flex;flex-direction:column;}
+  .msg-header{padding:16px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+  .msg-header img{width:32px;height:32px;border-radius:50%;object-fit:cover;}
+  .msg-body{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:10px;}
+  .bubble{max-width:70%;padding:10px 16px;border-radius:18px;font-size:14px;}
+  .bubble.them{background:var(--plum2);align-self:flex-start;border-bottom-left-radius:4px;}
+  .bubble.me{background:var(--coral);color:var(--plum);align-self:flex-end;border-bottom-right-radius:4px;}
+  .msg-input{display:flex;gap:10px;padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+  .msg-input input{flex:1;border-radius:999px;}
+  .msg-input button{background:var(--coral);color:var(--plum);border-radius:999px;padding:10px 22px;font-weight:600;}
+
+  .photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:400px;}
+  .photo-slot{aspect-ratio:1;border-radius:16px;border:1px dashed rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:24px;}
+  .interest-chip{font-size:12px;background:var(--plum2);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:6px 14px;margin:0 6px 6px 0;display:inline-block;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useRef } = React;
+
+const PROFILES = [
+  { id:'p1', name:'Ananya', age:19, branch:'Robotics & AI', year:'2nd Year',
+    bio:'Building a line-follower robot at 2am. Also unreasonably good at carrom.',
+    interests:['Robotics','Badminton','Indie music'],
+    photo:'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600&q=80' },
+  { id:'p2', name:'Rohan', age:20, branch:'Mechanical Engineering', year:'3rd Year',
+    bio:'Gym in the morning, chai at the dhaba by evening. Ask me about my bike.',
+    interests:['Gymming','Bikes','Cricket'],
+    photo:'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=80' },
+  { id:'p3', name:'Ishita', age:19, branch:'Computer Science', year:'2nd Year',
+    bio:'Competitive programmer by day, terrible karaoke singer by night.',
+    interests:['Coding','Singing','Anime'],
+    photo:'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&q=80' },
+];
+
+const NAV = [
+  { id:'home', label:'Discover' },
+  { id:'matches', label:'Matches' },
+  { id:'messages', label:'Messages' },
+  { id:'profile', label:'Profile' },
+];
+
+function Sidebar({ page, go }) {
+  return (
+    <aside className="sidebar">
+      <div>
+        <h1>Crush Connect</h1>
+        <nav>
+          {NAV.map(n => (
+            <a key={n.id} className={"navlink" + (page===n.id ? " active":"")} onClick={()=>go(n.id)}>{n.label}</a>
+          ))}
+        </nav>
+      </div>
+      <div className="corner-label">YMCA · J.C. Bose University<br/>of Science and Technology, Faridabad</div>
+    </aside>
+  );
+}
+
+function BottomNav({ page, go }) {
+  return (
+    <nav className="bottomnav">
+      {NAV.map(n => (
+        <a key={n.id} className={page===n.id ? "active":""} onClick={()=>go(n.id)}>{n.label}</a>
+      ))}
+    </nav>
+  );
+}
+
+function Landing({ go }) {
+  return (
+    <div className="center" style={{position:'relative',overflow:'hidden'}}>
+      <div className="blob" style={{width:380,height:380,background:'#FF5D73',top:-100,right:-100}}></div>
+      <div className="blob" style={{width:380,height:380,background:'#FFC857',bottom:-100,left:-100}}></div>
+      <p className="label" style={{marginBottom:16}}>Only for YMCA · J.C. Bose University, Faridabad</p>
+      <h1 style={{fontSize:'clamp(36px,7vw,64px)',maxWidth:650,lineHeight:1.15,margin:0}}>Meet someone from your own campus</h1>
+      <p style={{color:'var(--muted)',maxWidth:420,marginTop:18}}>Verified students only. Swipe through people you might actually run into at the canteen.</p>
+      <div style={{display:'flex',gap:16,marginTop:36}}>
+        <button className="btn-primary" onClick={()=>go('signup')}>Create account</button>
+        <button className="btn-outline" onClick={()=>go('login')}>Log in</button>
+      </div>
+    </div>
+  );
+}
+
+function Login({ go }) {
+  const [email,setEmail]=useState(''); const [pw,setPw]=useState('');
+  return (
+    <div className="center">
+      <div className="form-card">
+        <h2 style={{fontSize:28,margin:'0 0 4px'}}>Welcome back</h2>
+        <p className="label" style={{marginBottom:24}}>Log in with your college email.</p>
+        <form onSubmit={e=>{e.preventDefault(); go('home');}}>
+          <label className="label">College email</label>
+          <input className="field" type="email" required placeholder="yourname@ymcaust.ac.in" value={email} onChange={e=>setEmail(e.target.value)} />
+          <label className="label" style={{display:'block',marginTop:16}}>Password</label>
+          <input className="field" type="password" required placeholder="••••••••" value={pw} onChange={e=>setPw(e.target.value)} />
+          <button className="btn-primary" style={{width:'100%',marginTop:22}}>Log in</button>
+        </form>
+        <p className="label" style={{textAlign:'center',marginTop:20}}>New here? <a style={{color:'var(--cream)',textDecoration:'underline'}} onClick={()=>go('signup')}>Create an account</a></p>
+      </div>
+    </div>
+  );
+}
+
+function Signup({ go }) {
+  const [step,setStep]=useState('email');
+  const [email,setEmail]=useState(''); const [otp,setOtp]=useState(''); const [pw,setPw]=useState('');
+  return (
+    <div className="center">
+      <div className="form-card">
+        <h2 style={{fontSize:28,margin:'0 0 4px'}}>Join Crush Connect</h2>
+        <p className="label" style={{marginBottom:24}}>
+          {step==='email' && 'Use your college email to get started.'}
+          {step==='otp' && `Enter the code we sent to ${email || 'your email'}.`}
+          {step==='password' && 'Set a password for your account.'}
+        </p>
+        {step==='email' &&
+          <form onSubmit={e=>{e.preventDefault(); setStep('otp');}}>
+            <input className="field" type="email" required placeholder="yourname@ymcaust.ac.in" value={email} onChange={e=>setEmail(e.target.value)} />
+            <button className="btn-primary" style={{width:'100%',marginTop:16}}>Send code</button>
+          </form>}
+        {step==='otp' &&
+          <form onSubmit={e=>{e.preventDefault(); setStep('password');}}>
+            <input className="field" style={{textAlign:'center',letterSpacing:'0.3em'}} inputMode="numeric" required placeholder="6-digit code" value={otp} onChange={e=>setOtp(e.target.value)} />
+            <button className="btn-primary" style={{width:'100%',marginTop:16}}>Verify</button>
+          </form>}
+        {step==='password' &&
+          <form onSubmit={e=>{e.preventDefault(); go('home');}}>
+            <input className="field" type="password" required minLength={8} placeholder="Create a password" value={pw} onChange={e=>setPw(e.target.value)} />
+            <button className="btn-primary" style={{width:'100%',marginTop:16}}>Create account</button>
+          </form>}
+        <p className="label" style={{textAlign:'center',marginTop:20}}>Already have an account? <a style={{color:'var(--cream)',textDecoration:'underline'}} onClick={()=>go('login')}>Log in</a></p>
+      </div>
+    </div>
+  );
+}
+
+function SwipeCard({ profile, isTop, onSwipe, zIndex }) {
+  const ref = useRef(null);
+  const start = useRef(null);
+  const [dx,setDx] = useState(0);
+  const [dragging,setDragging] = useState(false);
+  const [leaving,setLeaving] = useState(null);
+
+  function down(e){
+    if(!isTop) return;
+    start.current = (e.touches ? e.touches[0].clientX : e.clientX);
+    setDragging(true);
+  }
+  function move(e){
+    if(!dragging) return;
+    const x = (e.touches ? e.touches[0].clientX : e.clientX);
+    setDx(x - start.current);
+  }
+  function up(){
+    if(!dragging) return;
+    setDragging(false);
+    if(dx > 120){ setLeaving('right'); setTimeout(()=>onSwipe('right'),250); }
+    else if(dx < -120){ setLeaving('left'); setTimeout(()=>onSwipe('left'),250); }
+    else setDx(0);
+  }
+
+  const rotate = Math.max(-12, Math.min(12, dx/10));
+  const style = {
+    zIndex,
+    backgroundImage:`url(${profile.photo})`,
+    transform: leaving
+      ? `translateX(${leaving==='right'?400:-400}px) rotate(${leaving==='right'?20:-20}deg)`
+      : isTop ? `translateX(${dx}px) rotate(${rotate}deg)` : `translateY(10px) scale(0.95)`,
+    opacity: leaving ? 0 : (isTop ? 1 : 0.6),
+  };
+  const likeOpacity = Math.max(0, Math.min(1, dx/100));
+  const nopeOpacity = Math.max(0, Math.min(1, -dx/100));
+
+  return (
+    <div ref={ref} className={"swipe-card" + (dragging?" dragging":"")} style={style}
+      onMouseDown={down} onMouseMove={move} onMouseUp={up} onMouseLeave={up}
+      onTouchStart={down} onTouchMove={move} onTouchEnd={up}>
+      <div className="card-shade"></div>
+      {isTop && <div className="stamp like" style={{opacity:likeOpacity}}>Like</div>}
+      {isTop && <div className="stamp nope" style={{opacity:nopeOpacity}}>Pass</div>}
+      <div className="card-info">
+        <h2 style={{fontSize:28,margin:0}}>{profile.name}, {profile.age}</h2>
+        <p style={{fontSize:13,opacity:.85,margin:'4px 0 0'}}>{profile.branch} · {profile.year}</p>
+        <p style={{fontSize:13,margin:'10px 0 0',maxWidth:280}}>{profile.bio}</p>
+        <div style={{marginTop:8}}>{profile.interests.map(t=><span key={t} className="tag">{t}</span>)}</div>
+      </div>
+    </div>
+  );
+}
+
+function Home() {
+  const [deck,setDeck] = useState(PROFILES);
+  const [match,setMatch] = useState(null);
+
+  function handleSwipe(dir){
+    const top = deck[deck.length-1];
+    if(dir==='right' && Math.random()>0.5) setMatch(top.name);
+    setDeck(prev => prev.slice(0,-1));
+  }
+
+  return (
+    <div className="page with-bottomnav" style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
+      <div className="swipe-area">
+        {deck.length===0 &&
+          <div className="empty-deck">
+            <h2 style={{fontSize:22,margin:'0 0 6px'}}>That's everyone for today</h2>
+            <p className="label">Come back tomorrow for a fresh batch.</p>
+          </div>}
+        {deck.map((p,i)=>(
+          <SwipeCard key={p.id} profile={p} isTop={i===deck.length-1} zIndex={i} onSwipe={handleSwipe} />
+        ))}
+      </div>
+      {deck.length>0 &&
+        <div className="swipe-actions">
+          <button className="round-btn pass" onClick={()=>handleSwipe('left')}>✕</button>
+          <button className="round-btn like" onClick={()=>handleSwipe('right')}>♥</button>
+        </div>}
+      {match &&
+        <div className="match-overlay" onClick={()=>setMatch(null)}>
+          <h2 style={{fontSize:38,color:'var(--gold)',margin:'0 0 8px'}}>It's a match!</h2>
+          <p style={{opacity:.85}}>You and {match} both swiped right.</p>
+          <button className="btn-primary" style={{marginTop:22}} onClick={()=>setMatch(null)}>Keep swiping</button>
+        </div>}
+    </div>
+  );
+}
+
+function Matches({ openChat }) {
+  return (
+    <div className="page with-bottomnav">
+      <h2 style={{fontSize:30,margin:'0 0 24px'}}>Your matches</h2>
+      <div className="grid-matches">
+        {PROFILES.map(p=>(
+          <div key={p.id} className="match-tile" onClick={()=>openChat(p.id)} style={{cursor:'pointer'}}>
+            <img src={p.photo} alt={p.name} />
+            <p>{p.name}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Messages({ activeId, setActiveId }) {
+  const active = PROFILES.find(p=>p.id===activeId) || PROFILES[0];
+  const [msgs,setMsgs] = useState([{from:'them', text:`Hey! Saw you're also in ${active.branch}`}]);
+  const [draft,setDraft] = useState('');
+
+  function send(e){
+    e.preventDefault();
+    if(!draft.trim()) return;
+    setMsgs(prev=>[...prev,{from:'me',text:draft}]);
+    setDraft('');
+  }
+
+  return (
+    <div className="msg-layout with-bottomnav">
+      <aside className="msg-list">
+        <h2 style={{fontSize:18,margin:'6px 8px 16px'}}>Messages</h2>
+        {PROFILES.map(p=>(
+          <div key={p.id} className={"msg-item"+(p.id===active.id?" active":"")} onClick={()=>{setActiveId(p.id); setMsgs([{from:'them',text:`Hey! Saw you're also in ${p.branch}`}]);}}>
+            <img src={p.photo} alt="" />
+            <span style={{fontSize:14}}>{p.name}</span>
+          </div>
+        ))}
+      </aside>
+      <div className="msg-thread">
+        <div className="msg-header">
+          <img src={active.photo} alt="" />
+          <span style={{fontSize:17}}>{active.name}</span>
+        </div>
+        <div className="msg-body">
+          {msgs.map((m,i)=><div key={i} className={"bubble "+m.from}>{m.text}</div>)}
+        </div>
+        <form className="msg-input" onSubmit={send}>
+          <input className="field" placeholder="Type a message" value={draft} onChange={e=>setDraft(e.target.value)} />
+          <button>Send</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function Profile() {
+  const [bio,setBio] = useState('Building a line-follower robot at 2am.');
+  const [interests,setInterests] = useState(['Robotics','Badminton']);
+  const [newTag,setNewTag] = useState('');
+
+  return (
+    <div className="page with-bottomnav" style={{maxWidth:480}}>
+      <h2 style={{fontSize:30,margin:'0 0 24px'}}>Your profile</h2>
+      <p className="label" style={{marginBottom:10}}>Photos</p>
+      <div className="photo-grid" style={{marginBottom:28}}>
+        {[0,1,2,3,4,5].map(i=><div key={i} className="photo-slot">+</div>)}
+      </div>
+      <label className="label">Bio</label>
+      <textarea className="field" rows={3} style={{resize:'none',width:'100%'}} value={bio} onChange={e=>setBio(e.target.value)}></textarea>
+      <p className="label" style={{margin:'24px 0 10px'}}>Interests</p>
+      <div style={{marginBottom:10}}>{interests.map(t=><span key={t} className="interest-chip">{t}</span>)}</div>
+      <form style={{display:'flex',gap:8}} onSubmit={e=>{e.preventDefault(); if(newTag.trim()){setInterests([...interests,newTag.trim()]); setNewTag('');}}}>
+        <input className="field" placeholder="Add an interest" value={newTag} onChange={e=>setNewTag(e.target.value)} />
+        <button className="btn-primary" style={{padding:'0 20px'}}>Add</button>
+      </form>
+      <button className="btn-primary" style={{marginTop:30}}>Save changes</button>
+    </div>
+  );
+}
+
+function App() {
+  const [page,setPage] = useState('landing');
+  const [activeChat,setActiveChat] = useState('p1');
+  const showShell = !['landing','login','signup'].includes(page);
+
+  function openChat(id){ setActiveChat(id); setPage('messages'); }
+
+  return (
+    <div className="app">
+      {showShell && <Sidebar page={page} go={setPage} />}
+      <div className="main">
+        {page==='landing' && <Landing go={setPage} />}
+        {page==='login' && <Login go={setPage} />}
+        {page==='signup' && <Signup go={setPage} />}
+        {page==='home' && <Home />}
+        {page==='matches' && <Matches openChat={openChat} />}
+        {page==='messages' && <Messages activeId={activeChat} setActiveId={setActiveChat} />}
+        {page==='profile' && <Profile />}
+        {showShell && <BottomNav page={page} go={setPage} />}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
